@@ -6,13 +6,17 @@
 //  Copyright (c) 2013 RedPandazLabs. All rights reserved.
 //
 
-#import "CSAppDelegate.h"
+#import "CocoaShop.h"
+#import "RPLRestManager.h"
 #import "CSViewController.h"
 
-@implementation CSAppDelegate
+@implementation CocoaShop
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    //setup RestKit
+    [RPLRestManager setupManager];
+    
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.backgroundColor = [UIColor whiteColor];
     self.window.rootViewController = [[CSViewController alloc] init];
