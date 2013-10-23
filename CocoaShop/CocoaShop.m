@@ -8,7 +8,7 @@
 
 #import "CocoaShop.h"
 #import "RPLRestManager.h"
-#import "CSViewController.h"
+#import "CSVenuesViewController.h"
 
 @implementation CocoaShop
 
@@ -19,7 +19,8 @@
     
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.backgroundColor = [UIColor whiteColor];
-    self.window.rootViewController = [[CSViewController alloc] init];
+    CSVenuesViewController *venuesViewController=[[CSVenuesViewController alloc] init];
+    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:venuesViewController];
     [self.window makeKeyAndVisible];
 
     return YES;

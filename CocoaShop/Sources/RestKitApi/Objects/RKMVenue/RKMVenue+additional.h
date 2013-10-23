@@ -7,6 +7,7 @@
 //
 
 #import "RKMVenue.h"
+#import "RKMLocation+additional.h"
 
 @interface RKMVenue (additional)
 

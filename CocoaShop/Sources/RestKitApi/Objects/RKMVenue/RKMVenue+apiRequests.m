@@ -14,14 +14,15 @@
 
 #define RESTAPI_VENUES_SEARCH_PATH      @"venues/search"
 
-+(void)venuesFromCoordinate:(CLLocationCoordinate2D)coordinate finishBlock:(void (^)(NSArray *objects,NSDictionary *responseDictionary))finishBlock errorBlock:(void(^)(NSError *error))errorBlock
++(void)venuesWithQuery:(NSString*)queryString fromCoordinate:(CLLocationCoordinate2D)coordinate finishBlock:(void (^)(NSArray *objects))finishBlock errorBlock:(void(^)(NSError *error))errorBlock
 {
-    NSString *resourcePath=RESTAPI_VENUES_SEARCH_PATH;//[RESTAPI_USER_PROFILE_PATH stringByAppendingFormat:@"login-%@",self.login];
+    NSString *resourcePath=RESTAPI_VENUES_SEARCH_PATH;
     
+    queryString=queryString ? queryString : @"";
     NSDictionary *params=@{@"client_id":        FOURSQUARE_CLIENT_ID,
                            @"client_secret":    FOURSQUARE_CLIENT_SECRET,
                            @"ll":               [NSString stringWithFormat:@"%f,%f",coordinate.latitude,coordinate.longitude],
-                           @"query":            @"суши",
+                           @"query":            queryString,
                            @"v":                @"20130815",
                            };
     
@@ -37,21 +38,8 @@
                             responseDescriptors:@[responseDescriptor]
                                     finishBlock:^(NSArray *objects, NSDictionary *response)
      {
-         //RKMUser *user=objects.lastObject;
-         NSLog(@"OBJECTS %d",objects.count);
-         NSLog(@"");
-         /*
-          for (RKMScheduleItem *scheduleItem in event.schedule.allObjects)
-          {
-          //scheduleItem.ident=scheduleItem.scheduleIdent;
-          DLog(@"ITEM %@",scheduleItem);
-          DLog(@"DETAILS %@ CNT %d",scheduleItem.details.allObjects,scheduleItem.details.allObjects.count);
-          DLog(@"");
-          }
-          
-          [self.managedObjectContext MR_saveToPersistentStoreAndWait];
-          */
-         finishBlock(objects,response);
+         //you may perform any additional operations over response Dictionary here
+         finishBlock(objects);
          
      } errorBlock:errorBlock];
 

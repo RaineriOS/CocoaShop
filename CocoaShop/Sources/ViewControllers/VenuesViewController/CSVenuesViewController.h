@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface CSViewController : UITableViewController
+@interface CSVenuesViewController : UITableViewController <NSFetchedResultsControllerDelegate>
 
 @end

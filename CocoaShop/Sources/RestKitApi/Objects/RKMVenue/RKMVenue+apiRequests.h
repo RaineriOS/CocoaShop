@@ -10,6 +10,6 @@
 
 @interface RKMVenue (apiRequests)
 
-+(void)venuesFromCoordinate:(CLLocationCoordinate2D)coordinate finishBlock:(void (^)(NSArray *objects,NSDictionary *responseDictionary))finishBlock errorBlock:(void(^)(NSError *error))errorBlock;
++(void)venuesWithQuery:(NSString*)queryString fromCoordinate:(CLLocationCoordinate2D)coordinate finishBlock:(void (^)(NSArray *objects))finishBlock errorBlock:(void(^)(NSError *error))errorBlock;
 
 @end

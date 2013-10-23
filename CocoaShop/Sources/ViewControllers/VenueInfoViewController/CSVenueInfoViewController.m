@@ -1,19 +1,39 @@
 //
-//  CSViewController.m
+//  CSVenueInfoViewController.m
 //  CocoaShop
 //
-//  Created by user on 17.10.13.
+//  Created by user on 22.10.13.
 //  Copyright (c) 2013 RedPandazLabs. All rights reserved.
 //
 
-#import "CSViewController.h"
-#import "RKMVenue+apiRequests.h"
+#import "CSVenueInfoViewController.h"
 
-@interface CSViewController ()
+@interface CSVenueInfoViewController ()
+
+@property (nonatomic, strong)   NSArray     *keys;
+@property (nonatomic, strong)   RKMVenue    *venue;
+
+-(void)_setupNavigationBar;
+-(void)_setupTableView;
+-(void)_setupTableViewKeys;
 
 @end
 
-@implementation CSViewController
+@implementation CSVenueInfoViewController
+
+static NSString *CellIdentifier = @"Cell";
+
+-(id)initWithVenue:(RKMVenue*)venue
+{
+    self=[self initWithStyle:UITableViewStylePlain];
+    if (self)
+    {
+        self.venue=venue;
+    }
+    
+    return self;
+}
+
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -27,13 +47,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
-    CLLocationCoordinate2D coordinate=CLLocationCoordinate2DMake(55.75, 37.6167);
-    [RKMVenue venuesFromCoordinate:coordinate finishBlock:^(NSArray *objects, NSDictionary *responseDictionary) {
-        NSLog(@"");
-    } errorBlock:^(NSError *error) {
-        NSLog(@"ERR");
-    }];
+    [self _setupNavigationBar];
+    [self _setupTableView];
+    [self _setupTableViewKeys];
 }
 
 - (void)didReceiveMemoryWarning
@@ -42,29 +58,47 @@
     // Dispose of any resources that can be recreated.
 }
 
+
+
+-(void)_setupNavigationBar
+{
+    self.title=self.venue.name;
+}
+
+
+-(void)_setupTableView
+{
+    [self.tableView registerClass:UITableViewCell.class forCellReuseIdentifier:CellIdentifier];
+}
+
+
+-(void)_setupTableViewKeys
+{
+    self.keys=@[
+                @"address",
+                @"city",
+                @"country",
+                ];
+}
+
+
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-#warning Potentially incomplete method implementation.
-    // Return the number of sections.
-    return 0;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-#warning Incomplete method implementation.
-    // Return the number of rows in the section.
-    return 0;
+    return self.keys.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"Cell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
-    // Configure the cell...
-    
+    cell.textLabel.text=[self.venue.location valueForKey:[self.keys objectAtIndex:indexPath.row]];
     return cell;
 }
 
