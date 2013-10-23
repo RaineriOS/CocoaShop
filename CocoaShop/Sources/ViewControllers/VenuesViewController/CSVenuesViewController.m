@@ -59,7 +59,7 @@ static NSString *cellIdentifier = @"cellIdentifier";
 
 -(void)_reloadData
 {
-    CLLocationCoordinate2D coordinate=COCOAHEADS_MOSCOW_SKYLIGHT_HEADQUARTERS_COORDINATE;
+    CLLocationCoordinate2D coordinate=TEST_COORDINATE1;
     NSString *queryString=@"cocoa";
     [RKMVenue venuesWithQuery:queryString fromCoordinate:coordinate finishBlock:^(NSArray *objects)
     {
