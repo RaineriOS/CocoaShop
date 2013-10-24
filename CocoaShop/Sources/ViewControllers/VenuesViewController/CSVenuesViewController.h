@@ -8,6 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface CSVenuesViewController : UITableViewController <NSFetchedResultsControllerDelegate>
+@interface CSVenuesViewController : UITableViewController   <
+                                                            UISearchBarDelegate,
+                                                            NSFetchedResultsControllerDelegate
+                                                            >
 
 @end

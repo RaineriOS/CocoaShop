@@ -8,11 +8,9 @@
 
 #import "RKMVenue+apiRequests.h"
 #import "NSManagedObject+abstractRest.h"
-#import "RKMVenue+mapping.h"
+//#import "RKMVenue+mapping.h"
 
 @implementation RKMVenue (apiRequests)
-
-#define RESTAPI_VENUES_SEARCH_PATH      @"venues/search"
 
 +(void)venuesWithQuery:(NSString*)queryString fromCoordinate:(CLLocationCoordinate2D)coordinate finishBlock:(void (^)(NSArray *objects))finishBlock errorBlock:(void(^)(NSError *error))errorBlock
 {
@@ -26,16 +24,21 @@
                            @"v":                @"20130815",
                            };
     
+    //you may setup your own responseDescriptor per request operation
+    //
+    /*
     RKResponseDescriptor *responseDescriptor=[RKResponseDescriptor responseDescriptorWithMapping:RKMVenue.entityMapping
                                                                                           method:RKRequestMethodGET
                                                                                      pathPattern:resourcePath
                                                                                          keyPath:@"response.venues"
                                                                                      statusCodes:RKStatusCodeIndexSetForClass(RKStatusCodeClassSuccessful)];
+    
     responseDescriptor.baseURL = RKObjectManager.sharedManager.baseURL;
+    */
     
     [self.class getManagedObjectsAtResourcePath:resourcePath
                                          params:params
-                            responseDescriptors:@[responseDescriptor]
+                            responseDescriptors:RKObjectManager.sharedManager.responseDescriptors //@[responseDescriptor]
                                     finishBlock:^(NSArray *objects, NSDictionary *response)
      {
          //you may perform any additional operations over response Dictionary here

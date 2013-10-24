@@ -11,13 +11,14 @@
 #import "RKMVenue+additional.h"
 #import "RKMVenue+apiRequests.h"
 
-static NSString *cellIdentifier = @"cellIdentifier";
-
+#define TEST_SEARCH_QUERY   @"cocoa"
 
 @interface CSVenuesViewController ()
 
-@property (nonatomic, strong)   NSFetchedResultsController  *fetchedResultsController;
+@property (nonatomic, strong)   NSFetchedResultsController      *fetchedResultsController;
+@property (nonatomic, strong)   UISearchBar                     *searchBar;
 
+-(void)_setupNavigationBar;
 -(void)_setupTableView;
 -(void)_reloadData;
 
@@ -25,34 +26,37 @@ static NSString *cellIdentifier = @"cellIdentifier";
 
 @implementation CSVenuesViewController
 
-- (id)initWithStyle:(UITableViewStyle)style
+-(void)dealloc
 {
-    self = [super initWithStyle:style];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
+    self.fetchedResultsController.delegate=nil;
 }
+
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [self _setupNavigationBar];
     [self _setupTableView];
-    
     [self _reloadData];
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    self.fetchedResultsController=nil;
 }
 
 
 
+-(void)_setupNavigationBar
+{
+    self.title=@"Venues";
+}
+
+
 -(void)_setupTableView
 {
-    self.refreshControl=[[UIRefreshControl alloc] init];;
+    self.refreshControl=[[UIRefreshControl alloc] init];
         [self.refreshControl addTarget:self action:@selector(_reloadData) forControlEvents:UIControlEventValueChanged];
 }
 
@@ -60,7 +64,7 @@ static NSString *cellIdentifier = @"cellIdentifier";
 -(void)_reloadData
 {
     CLLocationCoordinate2D coordinate=TEST_COORDINATE1;
-    NSString *queryString=@"cocoa";
+    NSString *queryString=self.searchBar.text;
     [RKMVenue venuesWithQuery:queryString fromCoordinate:coordinate finishBlock:^(NSArray *objects)
     {
         [self.refreshControl endRefreshing];
@@ -79,6 +83,19 @@ static NSString *cellIdentifier = @"cellIdentifier";
 
 #pragma mark - Properties -
 
+
+
+-(UISearchBar*)searchBar
+{
+    if (!_searchBar)
+    {
+        _searchBar=[[UISearchBar alloc] initWithFrame:CGRectMake(0.f, 0.f, CGRectGetWidth(self.view.bounds), 44.f)];
+        _searchBar.text=TEST_SEARCH_QUERY;
+        _searchBar.delegate=self;
+    }
+    
+    return _searchBar;
+}
 
 
 -(NSFetchedResultsController*)fetchedResultsController
@@ -107,8 +124,22 @@ static NSString *cellIdentifier = @"cellIdentifier";
 }
 
 
+
+-(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 44.f;
+}
+
+
+-(UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    return self.searchBar;
+}
+
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    static NSString *cellIdentifier = @"cellIdentifier";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
     
     if (!cell)
@@ -120,7 +151,7 @@ static NSString *cellIdentifier = @"cellIdentifier";
 
     RKMVenue *venue=(RKMVenue*)[self.fetchedResultsController objectAtIndexPath:indexPath];
     cell.textLabel.text=venue.name;
-    cell.detailTextLabel.text=[NSString stringWithFormat:@"%.1f km",(venue.location.distance.floatValue/1000)];
+    cell.detailTextLabel.text=[NSString stringWithFormat:@"%.2f km",(venue.location.distance.floatValue/1000)];
     return cell;
 }
 
@@ -138,6 +169,38 @@ static NSString *cellIdentifier = @"cellIdentifier";
 
 
 
+
+
+
+
+#pragma mark - UISearchBar Delegate -
+
+- (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar
+{
+    [searchBar setShowsCancelButton:YES animated:YES];
+    
+    return YES;
+}
+
+
+- (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar
+{
+    [searchBar setShowsCancelButton:NO animated:YES];
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar
+{
+    searchBar.text=@"";
+    [searchBar resignFirstResponder];
+}
+
+
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
+{
+    [searchBar resignFirstResponder];
+    [self _reloadData];
+}
 
 
 
@@ -182,9 +245,10 @@ static NSString *cellIdentifier = @"cellIdentifier";
             
         case NSFetchedResultsChangeUpdate:
         {
-            //JLUserCardCell *cell = (JLUserCardCell*)[self.tableView cellForRowAtIndexPath:indexPath];
-            //RKMVisitingCard *visitingCard=anObject;
-            //[cell setUser:visitingCard.user];
+            UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+            RKMVenue *venue=(RKMVenue*)anObject;
+            cell.textLabel.text=venue.name;
+            cell.detailTextLabel.text=[NSString stringWithFormat:@"%.1f km",(venue.location.distance.floatValue/1000)];
         }
             break;
             

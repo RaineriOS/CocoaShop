@@ -10,6 +10,8 @@
 
 @interface RKMVenue (apiRequests)
 
+#define RESTAPI_VENUES_SEARCH_PATH      @"venues/search"
+
 +(void)venuesWithQuery:(NSString*)queryString fromCoordinate:(CLLocationCoordinate2D)coordinate finishBlock:(void (^)(NSArray *objects))finishBlock errorBlock:(void(^)(NSError *error))errorBlock;
 
 @end

@@ -11,7 +11,5 @@
 @interface RPLRestManager : NSObject
 
 +(void)setupManager;
-+(void)clearPersistentStore;
-
 
 @end

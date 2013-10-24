@@ -20,10 +20,10 @@
 + (void) MR_setDefaultStoreCoordinator:(NSPersistentStoreCoordinator *)coordinator;
 @end
 
-
 @interface RPLRestManager()
 +(void)_setupDB;
 +(void)_setupReachability;
++(void)_setupLogging;
 @end
 
 @implementation RPLRestManager
@@ -31,37 +31,63 @@
 
 +(void)setupManager
 {
-    RKObjectManager *manager = [RKObjectManager sharedManager];
+    RKObjectManager *manager = RKObjectManager.sharedManager;
     
     if (!manager)
     {
         manager = [RKObjectManager managerWithBaseURL:[NSURL URLWithString:RESTKIT_PROJECT_API_URL]];
-        
-        [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
         manager.requestSerializationMIMEType = RKMIMETypeJSON;
         [RKObjectManager setSharedManager:manager];
+        AFNetworkActivityIndicatorManager.sharedManager.enabled = YES;
     }
     
-    RKLogConfigureByName("RestKit/Network/CoreData", RKLogLevelWarning);
-    //RKLogConfigureByName("RestKit/Network/CoreData", RKLogLevelTrace);
-    
-    RKLogConfigureByName("RestKit/Network", RKLogLevelWarning);
-    //RKLogConfigureByName("RestKit/Network", RKLogLevelTrace);
-    
-    RKLogConfigureByName("RestKit/ObjectMapping", RKLogLevelWarning);
-    //RKLogConfigureByName("RestKit/ObjectMapping", RKLogLevelTrace);
-    
-    RKLogConfigureByName("RestKit/CoreData", RKLogLevelWarning);
-    //RKLogConfigureByName("RestKit/CoreData", RKLogLevelTrace);
-
-    //if coreData needed
-    [RPLRestManager _setupDB];
-    [RPLRestManager _setupManagedMapping];
+    //if coreData support needed
+    {
+        [RPLRestManager _setupDB];
+        [RPLRestManager _setupManagedMapping];
+    }
 
     [RPLRestManager _setupMappings];
     [RPLRestManager _setupReachability];
+    [RPLRestManager _setupLogging];
 }
 
+
+
+
+#pragma mark - CD store -
+
++ (void)_setupDB
+{
+    // Configure RestKit's Core Data stack
+    NSURL *modelURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:RESTKIT_LOCALSTORAGE_NAME ofType:@"momd"]];
+    NSManagedObjectModel *managedObjectModel = [[[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL] mutableCopy];
+    NSString *storePath = [RKApplicationDataDirectory() stringByAppendingPathComponent:[RESTKIT_LOCALSTORAGE_NAME stringByAppendingString:@".sqlite"]];
+
+    NSError *error = nil;
+    RKObjectManager* objectManager = RKObjectManager.sharedManager;
+    objectManager.managedObjectStore = [[RKManagedObjectStore alloc] initWithManagedObjectModel:managedObjectModel];
+    [objectManager.managedObjectStore addSQLitePersistentStoreAtPath:storePath fromSeedDatabaseAtPath:nil withConfiguration:nil options:nil error:&error];
+    // Create the managed object contexts
+    [objectManager.managedObjectStore createManagedObjectContexts];
+    
+    // Configure a managed object cache to ensure we do not create duplicate objects
+    objectManager.managedObjectStore.managedObjectCache = [[RKInMemoryManagedObjectCache alloc] initWithManagedObjectContext:objectManager.managedObjectStore.persistentStoreManagedObjectContext];
+
+    
+    // Configure MagicalRecord to use RestKit's Core Data stack
+    // if available
+    
+#warning perform methods only with Magical Record connected
+    [NSPersistentStoreCoordinator MR_setDefaultStoreCoordinator:objectManager.managedObjectStore.persistentStoreCoordinator];
+    [NSManagedObjectContext MR_setRootSavingContext:objectManager.managedObjectStore.persistentStoreManagedObjectContext];
+    [NSManagedObjectContext MR_setDefaultContext:objectManager.managedObjectStore.mainQueueManagedObjectContext];
+}
+
+
+
+
+#pragma mark -
 
 
 
@@ -84,60 +110,13 @@
 }
 
 
-
-
-#pragma mark - CD store -
-
-+ (void)_setupDB
++(void)_setupLogging
 {
-    // Configure RestKit's Core Data stack
-    NSURL *modelURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:RESTKIT_LOCALSTORAGE_NAME ofType:@"momd"]];
-    NSManagedObjectModel *managedObjectModel = [[[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL] mutableCopy];
-    NSString *storePath = [RKApplicationDataDirectory() stringByAppendingPathComponent:[RESTKIT_LOCALSTORAGE_NAME stringByAppendingString:@".sqlite"]];
-
-    NSError *error = nil;
-    
-    RKObjectManager* objectManager = [RKObjectManager sharedManager];
-    objectManager.managedObjectStore = [[RKManagedObjectStore alloc] initWithManagedObjectModel:managedObjectModel];
-    [objectManager.managedObjectStore addSQLitePersistentStoreAtPath:storePath fromSeedDatabaseAtPath:nil withConfiguration:nil options:nil error:&error];
-    // Create the managed object contexts
-    [objectManager.managedObjectStore createManagedObjectContexts];
-    
-    // Configure a managed object cache to ensure we do not create duplicate objects
-    objectManager.managedObjectStore.managedObjectCache = [[RKInMemoryManagedObjectCache alloc] initWithManagedObjectContext:objectManager.managedObjectStore.persistentStoreManagedObjectContext];
-
-    // Configure MagicalRecord to use RestKit's Core Data stack
-    // if available
-    [NSPersistentStoreCoordinator MR_setDefaultStoreCoordinator:objectManager.managedObjectStore.persistentStoreCoordinator];
-    [NSManagedObjectContext MR_setRootSavingContext:objectManager.managedObjectStore.persistentStoreManagedObjectContext];
-    [NSManagedObjectContext MR_setDefaultContext:objectManager.managedObjectStore.mainQueueManagedObjectContext];
-
+    RKLogConfigureByName("RestKit/Network/CoreData", RKLogLevelWarning);
+    RKLogConfigureByName("RestKit/Network", RKLogLevelWarning);
+    RKLogConfigureByName("RestKit/ObjectMapping", RKLogLevelWarning);
+    RKLogConfigureByName("RestKit/CoreData", RKLogLevelWarning);
 }
-
-
-
-#pragma mark -
-
-+(void)clearPersistentStore
-{
-    [[RKObjectManager sharedManager].operationQueue cancelAllOperations];
-
-    [MagicalRecord saveUsingCurrentThreadContextWithBlockAndWait:^(NSManagedObjectContext *localContext)
-	 {
-		 NSArray *entities = [[NSManagedObjectModel MR_defaultManagedObjectModel] entities];
-		 if (entities)
-		 {
-			 for (NSEntityDescription *entityDescription in entities)
-			 {
-				 Class entityClass = NSClassFromString([entityDescription managedObjectClassName]);
-				 if (entityClass)
-					 [entityClass MR_truncateAllInContext:localContext];
-			 }
-		 }
-	 }];
-}
-
-
 
 
 
