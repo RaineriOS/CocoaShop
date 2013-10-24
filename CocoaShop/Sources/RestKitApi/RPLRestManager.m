@@ -10,16 +10,6 @@
 #import "RPLRestManagerDefines.h"
 #import "RPLRestManager+setupMappings.h"
 
-// Use a class extension to expose access to MagicalRecord's private setter methods
-@interface NSManagedObjectContext ()
-+ (void)MR_setRootSavingContext:(NSManagedObjectContext *)context;
-+ (void)MR_setDefaultContext:(NSManagedObjectContext *)moc;
-@end
-
-@interface NSPersistentStoreCoordinator ()
-+ (void) MR_setDefaultStoreCoordinator:(NSPersistentStoreCoordinator *)coordinator;
-@end
-
 @interface RPLRestManager()
 +(void)_setupDB;
 +(void)_setupReachability;
@@ -77,11 +67,24 @@
     
     // Configure MagicalRecord to use RestKit's Core Data stack
     // if available
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
     
-#warning perform methods only with Magical Record connected
-    [NSPersistentStoreCoordinator MR_setDefaultStoreCoordinator:objectManager.managedObjectStore.persistentStoreCoordinator];
-    [NSManagedObjectContext MR_setRootSavingContext:objectManager.managedObjectStore.persistentStoreManagedObjectContext];
-    [NSManagedObjectContext MR_setDefaultContext:objectManager.managedObjectStore.mainQueueManagedObjectContext];
+    if ([NSPersistentStoreCoordinator.class respondsToSelector:@selector(MR_setDefaultStoreCoordinator:)])
+    {
+        [NSPersistentStoreCoordinator.class performSelector:@selector(MR_setDefaultStoreCoordinator:) withObject:objectManager.managedObjectStore.persistentStoreCoordinator];
+    }
+    
+    if ([NSManagedObjectContext.class respondsToSelector:@selector(MR_setRootSavingContext:)])
+    {
+        [NSManagedObjectContext.class performSelector:@selector(MR_setRootSavingContext:) withObject:objectManager.managedObjectStore.persistentStoreManagedObjectContext];
+    }
+
+    if ([NSManagedObjectContext.class respondsToSelector:@selector(MR_setDefaultContext:)])
+    {
+        [NSManagedObjectContext.class performSelector:@selector(MR_setDefaultContext:) withObject:objectManager.managedObjectStore.mainQueueManagedObjectContext];
+    }
+#pragma clang diagnostic pop
 }
 
 
