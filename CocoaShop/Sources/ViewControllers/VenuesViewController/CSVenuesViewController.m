@@ -63,6 +63,12 @@
 
 -(void)_reloadData
 {
+    //resigning first responder on reload
+    [self.searchBar resignFirstResponder];
+    
+    //first clear cached objects (just for test use in this project)
+    [[RKMVenue MR_findAll] makeObjectsPerformSelector:@selector(MR_deleteEntity)];
+
     CLLocationCoordinate2D coordinate=TEST_COORDINATE1;
     NSString *queryString=self.searchBar.text;
     [RKMVenue venuesWithQuery:queryString fromCoordinate:coordinate finishBlock:^(NSArray *objects)

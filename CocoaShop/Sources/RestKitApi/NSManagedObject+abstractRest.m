@@ -120,14 +120,11 @@
      {
          NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:operation.HTTPRequestOperation.responseData options:0 error:nil];
 
-         //DLog(@"Loaded: %@ COUNT %d", mappingResult.array,mappingResult.array.count);
          if (finishBlock)
              finishBlock(mappingResult.array,responseDictionary);
      }
                                                   failure:^(RKObjectRequestOperation *operation, NSError *error)
      {
-         //NSError *operationError=[error rkError] ? [[error rkError] standartError] : error;
-         //DLog(@"Operation failed with error: %@", [error rkError] ? [error rkError] : error);
          if (errorBlock)
             errorBlock(error);
      }];
